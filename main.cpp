@@ -26,7 +26,7 @@ int timeout = 8000; //timeout for wifi commands
 #define IP "184.106.153.149"
 
 //global variable
-float moistvalue = 0; 
+float tempValue = 0; 
 
 //Update key for thingspeak
 char* Update_Key = "L9CSTK6I7D7RBYWQ";
@@ -94,7 +94,7 @@ void wifi_send(void){
     wait(1);
     
     //create link 
-    sprintf(http_cmd,"/update?api_key=%s&field1=%f",Update_Key,moistvalue); 
+    sprintf(http_cmd,"/update?api_key=%s&field1=%f",Update_Key,tempValue); 
     pc.printf(http_cmd);
     
     pc.printf("******** Sending URL to wifi ********\r\n");
@@ -104,23 +104,23 @@ void wifi_send(void){
     else
         pc.printf("No response while sending URL \r\n");
 }
-void update_moisture(){
+void update_temperature(){
           int ret;
      unsigned int a, beta = 3975, units, tens;
      float temperature, resistance;
   
-            // send temperature value to M2X every 5.5 seconds
+        
         a = temperatureSensor.read_u16(); /* Read analog value */
         /* Calculate the resistance of the thermistor from analog votage read. */
         resistance = (float) 10000.0 * ((65536.0 / a) - 1.0);
 
         /* Convert the resistance to temperature using Steinhart's Hart equation */
         temperature =(1/((log(resistance/10000.0)/beta) + (1.0/298.15)))-273.15; 
-    moistvalue =temperature;
+        tempValue =temperature;
     }
 void update_ThingSpeak()
 {
-        pc.printf("Current moistvalue is = %.3f \r\n", moistvalue);
+        pc.printf("Current tempValue is = %.3f degrees \r\n", tempValue);
         wifi_send();
         wait(1);
     
@@ -132,8 +132,10 @@ int main () {
     // see https://developer.mbed.org/blog/entry/Simplify-your-code-with-mbed-events/
     eventThread.start(callback(&eventQueue, &EventQueue::dispatch_forever));
     // Read the moisture data every second
-    eventQueue.call_every(1000, &update_moisture);
+    eventQueue.call_every(1000, &update_temperature);
     //update the moisture value to Thingspeak Servers
+    //not neccesary as one event eventQueue.call_every(5000, &update_ThingSpeak) can be called and  use eventQueue_call_in(500,&update_temperature)
+    //to update  temperature
     eventQueue.call_every(5000, &update_ThingSpeak);
     wait(osWaitForever);
 }
