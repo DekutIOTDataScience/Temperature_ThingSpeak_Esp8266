@@ -1,6 +1,7 @@
 #include "mbed.h"
 #include "ESP8266.h"
- 
+#include "SDFileSystem.h"
+#include <stdio.h>
 Serial pc(USBTX,USBRX);
 
 static EventQueue eventQueue;               // An event queue
